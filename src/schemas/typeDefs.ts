@@ -26,6 +26,7 @@ const typeDefs = gql`
   type Mutation {
     deleteTodoList(todoListId: String!): String
     postTodoList: TodoList
+    putTodoListTitle(title: String!, todoListId: String!): String
 
     putTodo(name: String!, todoListId: String!): Todo
     postTodo(todo: TodoInput!, todoListId: String!): Todo

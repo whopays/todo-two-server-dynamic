@@ -5,12 +5,13 @@ import TodoList from '../../schemas/TodoList';
 export default async () => {
   try {
     const TodoModel = getModelForClass(TodoList);
+    const id = uuidv4();
 
     const todo = new TodoModel({
-      id: uuidv4(),
+      id,
       updatedDate: new Date(),
       todos: [],
-      title: 'title',
+      title: id.split('-')[0],
     });
     return await todo.save();
   } catch (err) {

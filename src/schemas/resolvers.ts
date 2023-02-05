@@ -4,6 +4,7 @@ import putTodo from '../actions/todo/putTodo';
 import getTodoList from '../actions/todoList/getTodoList';
 import postTodoList from '../actions/todoList/postTodoList';
 import deleteTodoList from '../actions/todoList/deleteTodoList';
+import putTodoListTitle from '../actions/todoList/putTodoListTitle';
 import Todo from './Todo';
 import TodoList from './TodoList';
 
@@ -22,6 +23,15 @@ const resolvers = {
       { todoListId }: { todoListId: TodoList['id'] }
     ) => {
       return await deleteTodoList(todoListId);
+    },
+    putTodoListTitle: async (
+      parent: unknown,
+      {
+        todoListId,
+        title,
+      }: { todoListId: TodoList['id']; title: TodoList['title'] }
+    ) => {
+      return await putTodoListTitle(title, todoListId);
     },
     postTodo: async (
       parent: unknown,
