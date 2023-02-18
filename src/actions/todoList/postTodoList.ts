@@ -6,12 +6,14 @@ export default async () => {
   try {
     const TodoModel = getModelForClass(TodoList);
     const id = uuidv4();
+    const date = new Date();
+    const formatDate = date.toLocaleDateString(undefined,  { year: 'numeric', month: 'short', day: 'numeric' })
 
     const todo = new TodoModel({
       id,
-      updatedDate: new Date(),
+      updatedDate: date,
       todos: [],
-      title: id.split('-')[0],
+      title: `${formatDate} (${id.split('-')[0]})`,
     });
     return await todo.save();
   } catch (err) {
