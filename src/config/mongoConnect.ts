@@ -2,7 +2,7 @@ import mongoose, { Connection } from 'mongoose';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-const defaultDatabase = process.env.DEFAULT_DATABASE;
+const defaultDatabase = process.env.MONGO_DATABASE;
 const protocol = process.env.MONGO_PROTOCOL;
 const credentials = `${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}`;
 const hostname = process.env.MONGO_HOSTNAME;
