@@ -13,21 +13,23 @@ export default async ({
 }) => {
   try {
     const TodoListModel = getModelForClass(TodoList);
-    const pulledTodo = await TodoListModel.findOneAndUpdate(
+    const pulledTodoList = await TodoListModel.findOneAndUpdate(
       { id: todoListId },
       {
         $pull: { todos: { id: todoId } },
       }
     ).exec();
-
+    const pulledTodo = pulledTodoList?.todos?.find(({ id }) => id === todoId);
     const updatedModel = await TodoListModel.findOneAndUpdate(
       { id: todoListId },
       {
         $push: {
           todos: { $each: [pulledTodo], $position: position },
         },
-      }
+      },
+      { new: true }
     ).exec();
+
     return updatedModel;
   } catch (err) {
     console.dir({ err });

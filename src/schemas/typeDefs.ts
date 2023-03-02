@@ -27,6 +27,11 @@ const typeDefs = gql`
     deleteTodoList(todoListId: String!): String
     postTodoList: TodoList
     putTodoListTitle(title: String!, todoListId: String!): String
+    changeTodoPosition(
+      todoId: String!
+      todoListId: String!
+      position: Int!
+    ): TodoList
 
     putTodo(name: String!, todoListId: String!): Todo
     postTodo(todo: TodoInput!, todoListId: String!): Todo

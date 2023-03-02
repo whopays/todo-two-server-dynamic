@@ -12,6 +12,7 @@ export default async (todoListId: TodoList['id'], todoId: Todo['id']) => {
       },
       { new: true }
     ).exec();
+    console.log(updatedModel);
     return updatedModel;
   } catch (err) {
     console.dir({ err });
