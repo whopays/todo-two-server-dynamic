@@ -1,6 +1,20 @@
+// replacing entire array as it's impossible as of now to $pull and $push atomically, leading to update event being sent 2 times, in turn leading to flickering
 import { getModelForClass } from '@typegoose/typegoose';
 import Todo from '../../schemas/Todo';
 import TodoList from '../../schemas/TodoList';
+
+function moveArrayItem(
+  array: Array<Todo>,
+  todoId: Todo['id'],
+  toIndex: number
+): Array<any> {
+  const newArray = [...array];
+  const oldPosition = array.findIndex(({ id }) => id === todoId);
+  const item = newArray[oldPosition];
+  newArray.splice(oldPosition, 1);
+  newArray.splice(toIndex, 0, item);
+  return newArray;
+}
 
 export default async ({
   todoListId,
@@ -13,22 +27,22 @@ export default async ({
 }) => {
   try {
     const TodoListModel = getModelForClass(TodoList);
-    const pulledTodoList = await TodoListModel.findOneAndUpdate(
-      { id: todoListId },
+    const todoList = await TodoListModel.findOne(
       {
-        $pull: { todos: { id: todoId } },
-      }
-    ).exec();
-    const pulledTodo = pulledTodoList?.todos?.find(({ id }) => id === todoId);
+        id: todoListId,
+      },
+      { todos: 1, _id: 0 }
+    );
+
     const updatedModel = await TodoListModel.findOneAndUpdate(
       { id: todoListId },
       {
-        $push: {
-          todos: { $each: [pulledTodo], $position: position },
+        $set: {
+          todos: moveArrayItem(todoList?.todos || [], todoId, position),
         },
       },
       { new: true }
-    ).exec();
+    );
 
     return updatedModel;
   } catch (err) {
