@@ -7,15 +7,19 @@ export default async (todo: Todo, todoListId: TodoList['id']) => {
     const TodoListModel = getModelForClass(TodoList);
     const { checked, name, type, id } = todo;
 
-    if ((checked === undefined && !name && !type) || !todoListId || !id) {
+    if (
+      (checked === undefined && name === undefined && !type) ||
+      !todoListId ||
+      !id
+    ) {
       return Promise.reject();
     }
 
     let query;
     if (checked !== undefined) query = { $set: { 'todos.$.checked': checked } };
-    if (name) query = { $set: { 'todos.$.name': name } };
-    if (type) query = { $set: { 'todos.$.type': type } };
-
+    if (name !== undefined) query = { $set: { 'todos.$.name': name } };
+    if (type !== undefined) query = { $set: { 'todos.$.type': type } };
+    console.log(query);
     const updatedModel = await TodoListModel.updateOne(
       { id: todoListId, 'todos.id': id },
       query
