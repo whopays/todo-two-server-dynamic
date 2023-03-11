@@ -14,14 +14,38 @@ export default async (req: Request, res: Response) => {
   res.writeHead(200, headers);
 
   const TodoListModelCollection = getModelForClass(TodoList).collection;
-  const pipeline = [{ $match: { 'fullDocument.id': todoListId } }];
+  const updatePipeline = [{ $match: { 'fullDocument.id': todoListId } }];
+  const deletePipeline = [
+    {
+      $match: {
+        operationType: 'delete',
+        'fullDocumentBeforeChange.id': todoListId,
+      },
+    },
+  ];
 
-  TodoListModelCollection.watch(pipeline, {
+  TodoListModelCollection.watch(updatePipeline, {
     fullDocument: 'updateLookup',
   }).on('change', (data) => {
     // @ts-ignore
     res.write(`data: ${JSON.stringify(data.fullDocument)}\n\n`);
   });
+
+  // is sended 3 times
+  getModelForClass(TodoList)
+    .watch(deletePipeline, {
+      fullDocumentBeforeChange: 'whenAvailable',
+    })
+    .on('change', (data) => {
+      res.write(
+        `data: ${JSON.stringify({
+          // @ts-ignore
+          ...data.fullDocumentBeforeChange,
+          deleted: true,
+        })}\n\n`
+      );
+    });
+
   // close changeStream
   // resume token
 };
