@@ -5,13 +5,14 @@ import TodoList from '../../schemas/TodoList';
 const minute = 1 * 60 * 1000;
 
 interface Connection {
-  ip: string; // not unique, do base64
+  ip: string; // not unique, do base64 split
   startTimestamp: number;
+  todoId: Todo['id'] | undefined;
+  res: Response;
 }
 
 interface ToDoListConnections {
   todoListId: TodoList['id'];
-  todoId: Todo['id'] | undefined;
   connections: Array<Connection>;
 }
 
@@ -20,9 +21,9 @@ const currentlyOpenedTodoLists: Array<ToDoListConnections> = [];
 startDroppingConnections();
 
 export default async (req: Request, res: Response) => {
-  const { params } = req;
+  const { params, ip } = req;
   const { todoListId } = params;
-  console.log(req.ip);
+  console.log(ip);
 
   const headers = {
     'Content-Type': 'text/event-stream',
@@ -30,12 +31,25 @@ export default async (req: Request, res: Response) => {
     'Cache-Control': 'no-cache',
   };
   res.writeHead(200, headers);
-  res.write(`data: ${JSON.stringify({})}\n\n`);
+  addConnection({ ip, todoListId, res });
+  todoListStream({ res, todoListId });
 };
 
 // this streams events, this is where user subscribes
 // don't expose IP
-function todoListStream() {}
+function todoListStream({
+  res,
+  todoListId,
+}: {
+  res: Response;
+  todoListId: ToDoListConnections['todoListId'];
+}) {
+  currentlyOpenedTodoLists.find(
+    (currentlyOpenedTodoList) =>
+      currentlyOpenedTodoList.todoListId === todoListId
+  );
+  res.write(`data: ${JSON.stringify({})}\n\n`);
+}
 
 // this is not exposed to end used
 function startDroppingConnections() {
@@ -64,11 +78,13 @@ function removeConnection({
 function addConnection({
   todoListId,
   ip,
+  res,
 }: {
   todoListId: ToDoListConnections['todoListId'];
   ip: Connection['ip'];
+  res: Response;
 }) {
-  console.log('added', todoListId, ip);
+  console.log('added', todoListId, ip, res);
 }
 
 function changeActiveTodoInConnection({
