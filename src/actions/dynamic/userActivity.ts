@@ -84,15 +84,34 @@ function addConnection({
   ip: Connection['ip'];
   res: Response;
 }) {
-  console.log('added', todoListId, ip, res);
+  const todoListIndex = currentlyOpenedTodoLists.findIndex(
+    (currentlyOpenedTodoList) =>
+      currentlyOpenedTodoList.todoListId === todoListId
+  );
+
+  const newConnection = {
+    ip,
+    todoId: undefined,
+    res,
+    startTimestamp: Date.now(),
+  };
+
+  if (todoListIndex === -1) {
+    currentlyOpenedTodoLists.push({ todoListId, connections: [newConnection] });
+  } else {
+    currentlyOpenedTodoLists[todoListIndex].connections ??= [];
+    currentlyOpenedTodoLists[todoListIndex].connections.push();
+  }
 }
 
 function changeActiveTodoInConnection({
   todoListId,
   ip,
+  todoId,
 }: {
   todoListId: ToDoListConnections['todoListId'];
   ip: Connection['ip'];
+  todoId: Connection['todoId'];
 }) {
   console.log('change todo');
 }
