@@ -35,46 +35,6 @@ export default async (req: Request, res: Response) => {
   todoListStream({ res, todoListId });
 };
 
-// this streams events, this is where user subscribes
-// don't expose IP
-function todoListStream({
-  res,
-  todoListId,
-}: {
-  res: Response;
-  todoListId: ToDoListConnections['todoListId'];
-}) {
-  currentlyOpenedTodoLists.find(
-    (currentlyOpenedTodoList) =>
-      currentlyOpenedTodoList.todoListId === todoListId
-  );
-  res.write(`data: ${JSON.stringify({})}\n\n`);
-}
-
-// this is not exposed to end used
-function startDroppingConnections() {
-  setInterval(() => {
-    currentlyOpenedTodoLists.forEach(({ connections, todoListId }) => {
-      connections.forEach(({ ip, startTimestamp }) => {
-        if (Date.now() - startTimestamp < minute * 10) {
-          removeConnection({ todoListId, ip });
-        }
-      });
-    });
-  }, minute);
-}
-
-// this is not exposed to end user
-function removeConnection({
-  todoListId,
-  ip,
-}: {
-  todoListId: ToDoListConnections['todoListId'];
-  ip: Connection['ip'];
-}) {
-  console.log('removed', todoListId, ip);
-}
-
 function addConnection({
   todoListId,
   ip,
@@ -102,6 +62,23 @@ function addConnection({
     currentlyOpenedTodoLists[todoListIndex].connections ??= [];
     currentlyOpenedTodoLists[todoListIndex].connections.push();
   }
+  console.log(currentlyOpenedTodoLists);
+}
+
+// this streams events, this is where user subscribes
+// don't expose IP
+function todoListStream({
+  res,
+  todoListId,
+}: {
+  res: Response;
+  todoListId: ToDoListConnections['todoListId'];
+}) {
+  currentlyOpenedTodoLists.find(
+    (currentlyOpenedTodoList) =>
+      currentlyOpenedTodoList.todoListId === todoListId
+  );
+  res.write(`data: ${JSON.stringify({})}\n\n`);
 }
 
 function changeActiveTodoInConnection({
@@ -114,4 +91,28 @@ function changeActiveTodoInConnection({
   todoId: Connection['todoId'];
 }) {
   console.log('change todo');
+}
+
+// this is not exposed to end used
+function startDroppingConnections() {
+  setInterval(() => {
+    currentlyOpenedTodoLists.forEach(({ connections, todoListId }) => {
+      connections.forEach(({ ip, startTimestamp }) => {
+        if (Date.now() - startTimestamp < minute * 10) {
+          removeConnection({ todoListId, ip });
+        }
+      });
+    });
+  }, minute);
+}
+
+// this is not exposed to end user
+function removeConnection({
+  todoListId,
+  ip,
+}: {
+  todoListId: ToDoListConnections['todoListId'];
+  ip: Connection['ip'];
+}) {
+  console.log('removed', todoListId, ip);
 }

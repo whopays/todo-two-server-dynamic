@@ -14,8 +14,11 @@ import connection from './config/mongoConnect';
 import typeDefs from './schemas/typeDefs';
 import resolvers from './schemas/resolvers';
 import selfPing from './selfPing';
-import events from './actions/dynamic/events';
-import userActivity from './actions/dynamic/userActivity';
+import events from './actions/events/changeEventsStream';
+import activityStream from './actions/events/viewStream';
+import changeEventsStream from './actions/events/changeEventsStream';
+import viewStream from './actions/events/viewStream';
+import postViewEvent from './actions/events/postViewEvent';
 
 const app = express();
 const httpServer = createServer(app);
@@ -69,14 +72,21 @@ if (typeof port === 'string') {
     '/events/:todoListId',
     cors<cors.CorsRequest>(),
     bodyParser.json({ limit: '1mb' }),
-    events
+    changeEventsStream
   );
 
   app.use(
-    '/userActivity/:todoListId',
+    '/viewStream/:todoListId/',
     cors<cors.CorsRequest>(),
     bodyParser.json({ limit: '1mb' }),
-    userActivity,
+    viewStream
+  );
+
+  app.use(
+    '/viewEvent/:todoListId',
+    cors<cors.CorsRequest>(),
+    bodyParser.json({ limit: '1mb' }),
+    postViewEvent
   );
 
   app.use(
