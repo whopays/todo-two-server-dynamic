@@ -4,26 +4,25 @@ import TodoList from '../../schemas/TodoList';
 
 const minute = 1 * 60 * 1000;
 
-interface Connection {
+export interface Connection {
   ip: string; // not unique, do base64 split
   startTimestamp: number;
   todoId: Todo['id'] | undefined;
   res: Response;
 }
 
-interface ToDoListConnections {
+export interface ToDoListConnections {
   todoListId: TodoList['id'];
   connections: Array<Connection>;
 }
 
-const currentlyOpenedTodoLists: Array<ToDoListConnections> = [];
+export const currentlyOpenedTodoLists: Array<ToDoListConnections> = [];
 
 startDroppingConnections();
 
 export default async (req: Request, res: Response) => {
   const { params, ip } = req;
   const { todoListId } = params;
-  console.log(ip);
 
   const headers = {
     'Content-Type': 'text/event-stream',
@@ -81,7 +80,7 @@ function todoListStream({
   res.write(`data: ${JSON.stringify({})}\n\n`);
 }
 
-function changeActiveTodoInConnection({
+export function changeActiveTodoInConnection({
   todoListId,
   ip,
   todoId,
@@ -90,7 +89,7 @@ function changeActiveTodoInConnection({
   ip: Connection['ip'];
   todoId: Connection['todoId'];
 }) {
-  console.log('change todo');
+  console.log('change todo', todoListId, ip, todoId);
 }
 
 // this is not exposed to end used

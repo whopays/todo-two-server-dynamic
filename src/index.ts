@@ -14,11 +14,9 @@ import connection from './config/mongoConnect';
 import typeDefs from './schemas/typeDefs';
 import resolvers from './schemas/resolvers';
 import selfPing from './selfPing';
-import events from './actions/events/changeEventsStream';
-import activityStream from './actions/events/viewStream';
 import changeEventsStream from './actions/events/changeEventsStream';
 import viewStream from './actions/events/viewStream';
-import postViewEvent from './actions/events/postViewEvent';
+import postEvent from './actions/events/postEvent';
 
 const app = express();
 const httpServer = createServer(app);
@@ -68,25 +66,16 @@ if (typeof port === 'string') {
 
   await server.start();
 
+  app.use('/events/:todoListId', cors<cors.CorsRequest>(), changeEventsStream);
+  app.use('/viewStream/:todoListId', cors<cors.CorsRequest>(), viewStream);
   app.use(
-    '/events/:todoListId',
-    cors<cors.CorsRequest>(),
+    '/postEvent',
+    cors<cors.CorsRequest>({
+      methods: ['POST', 'OPTIONS'],
+      credentials: false,
+    }),
     bodyParser.json({ limit: '1mb' }),
-    changeEventsStream
-  );
-
-  app.use(
-    '/viewStream/:todoListId/',
-    cors<cors.CorsRequest>(),
-    bodyParser.json({ limit: '1mb' }),
-    viewStream
-  );
-
-  app.use(
-    '/viewEvent/:todoListId',
-    cors<cors.CorsRequest>(),
-    bodyParser.json({ limit: '1mb' }),
-    postViewEvent
+    postEvent
   );
 
   app.use(
