@@ -16,14 +16,12 @@ export interface ToDoListConnections {
   connections: Array<Connection>;
 }
 
-export const currentlyOpenedTodoLists: Array<ToDoListConnections> = [];
+export let currentlyOpenedTodoLists: Array<ToDoListConnections> = [];
 
 startDroppingConnections();
 
 export default async (req: Request, res: Response) => {
-  console.log('12312312312a');
   const { todoListId, userId } = req.params;
-  console.log('adds stream connection', userId, todoListId);
   const headers = {
     'Content-Type': 'text/event-stream',
     Connection: 'keep-alive',
@@ -78,9 +76,6 @@ function todoListStream({
     (currentlyOpenedTodoList) =>
       currentlyOpenedTodoList.todoListId === todoListId
   );
-  console.log(
-    todoList?.connections.filter((connection) => connection.userId !== userId)
-  );
   const response = todoList?.connections
     .filter((connection) => connection.userId !== userId)
     .map(({ todoId, userId }) => ({
@@ -99,29 +94,32 @@ export function changeActiveTodoInConnection({
   userId: Connection['userId'];
   todoId: Connection['todoId'];
 }) {
-  console.log('change todo', todoListId, userId, todoId);
+  const todoList = currentlyOpenedTodoLists.find(
+    (currentlyOpenedTodoList) =>
+      currentlyOpenedTodoList.todoListId === todoListId
+  );
+
+  const connection = todoList?.connections.find(
+    (connection) => connection.userId === userId
+  );
+  if (connection) {
+    connection.todoId = todoId;
+  }
 }
 
 // this is not exposed to end used
 function startDroppingConnections() {
   setInterval(() => {
-    currentlyOpenedTodoLists.forEach(({ connections, todoListId }) => {
-      connections.forEach(({ userId, startTimestamp }) => {
-        if (Date.now() - startTimestamp < minute * 10) {
-          removeConnection({ todoListId, userId });
-        }
-      });
+    currentlyOpenedTodoLists.forEach((currentlyOpenedTodoList) => {
+      currentlyOpenedTodoList.connections =
+        currentlyOpenedTodoList.connections.filter(({ startTimestamp }) => {
+          return Date.now() - startTimestamp < minute * 10;
+        });
+      if (currentlyOpenedTodoList.connections.length === 0) {
+        currentlyOpenedTodoLists = currentlyOpenedTodoLists.filter(
+          (list) => currentlyOpenedTodoList.todoListId !== list.todoListId
+        );
+      }
     });
   }, minute);
-}
-
-// this is not exposed to end user
-function removeConnection({
-  todoListId,
-  userId,
-}: {
-  todoListId: ToDoListConnections['todoListId'];
-  userId: Connection['userId'];
-}) {
-  console.log('removed', todoListId, userId);
 }

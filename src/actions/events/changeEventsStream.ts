@@ -3,7 +3,6 @@ import { Request, Response } from 'express';
 import TodoList from '../../schemas/TodoList';
 
 export default async (req: Request, res: Response) => {
-  console.log('12312312312b');
   const { todoListId } = req.params;
   const headers = {
     'Content-Type': 'text/event-stream',
