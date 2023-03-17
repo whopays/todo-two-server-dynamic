@@ -5,7 +5,7 @@ import TodoList from '../../schemas/TodoList';
 const minute = 1 * 60 * 1000;
 
 export interface Connection {
-  ip: string; // not unique, do base64 split
+  userId: string;
   startTimestamp: number;
   todoId: Todo['id'] | undefined;
   res: Response;
@@ -21,26 +21,27 @@ export const currentlyOpenedTodoLists: Array<ToDoListConnections> = [];
 startDroppingConnections();
 
 export default async (req: Request, res: Response) => {
-  const { params, ip } = req;
-  const { todoListId } = params;
-
+  console.log('12312312312a');
+  const { todoListId, userId } = req.params;
+  console.log('adds stream connection', userId, todoListId);
   const headers = {
     'Content-Type': 'text/event-stream',
     Connection: 'keep-alive',
     'Cache-Control': 'no-cache',
   };
   res.writeHead(200, headers);
-  addConnection({ ip, todoListId, res });
-  todoListStream({ res, todoListId });
+
+  addConnection({ userId, todoListId, res });
+  todoListStream({ res, todoListId, userId });
 };
 
 function addConnection({
   todoListId,
-  ip,
+  userId,
   res,
 }: {
   todoListId: ToDoListConnections['todoListId'];
-  ip: Connection['ip'];
+  userId: Connection['userId'];
   res: Response;
 }) {
   const todoListIndex = currentlyOpenedTodoLists.findIndex(
@@ -49,7 +50,7 @@ function addConnection({
   );
 
   const newConnection = {
-    ip,
+    userId,
     todoId: undefined,
     res,
     startTimestamp: Date.now(),
@@ -59,46 +60,55 @@ function addConnection({
     currentlyOpenedTodoLists.push({ todoListId, connections: [newConnection] });
   } else {
     currentlyOpenedTodoLists[todoListIndex].connections ??= [];
-    currentlyOpenedTodoLists[todoListIndex].connections.push();
+    currentlyOpenedTodoLists[todoListIndex].connections.push(newConnection);
   }
-  console.log(currentlyOpenedTodoLists);
 }
 
 // this streams events, this is where user subscribes
-// don't expose IP
 function todoListStream({
   res,
   todoListId,
+  userId,
 }: {
   res: Response;
   todoListId: ToDoListConnections['todoListId'];
+  userId: Connection['userId'];
 }) {
-  currentlyOpenedTodoLists.find(
+  const todoList = currentlyOpenedTodoLists.find(
     (currentlyOpenedTodoList) =>
       currentlyOpenedTodoList.todoListId === todoListId
   );
-  res.write(`data: ${JSON.stringify({})}\n\n`);
+  console.log(
+    todoList?.connections.filter((connection) => connection.userId !== userId)
+  );
+  const response = todoList?.connections
+    .filter((connection) => connection.userId !== userId)
+    .map(({ todoId, userId }) => ({
+      todoId,
+      userId,
+    }));
+  res.write(`data: ${JSON.stringify(response)}\n\n`);
 }
 
 export function changeActiveTodoInConnection({
   todoListId,
-  ip,
+  userId,
   todoId,
 }: {
   todoListId: ToDoListConnections['todoListId'];
-  ip: Connection['ip'];
+  userId: Connection['userId'];
   todoId: Connection['todoId'];
 }) {
-  console.log('change todo', todoListId, ip, todoId);
+  console.log('change todo', todoListId, userId, todoId);
 }
 
 // this is not exposed to end used
 function startDroppingConnections() {
   setInterval(() => {
     currentlyOpenedTodoLists.forEach(({ connections, todoListId }) => {
-      connections.forEach(({ ip, startTimestamp }) => {
+      connections.forEach(({ userId, startTimestamp }) => {
         if (Date.now() - startTimestamp < minute * 10) {
-          removeConnection({ todoListId, ip });
+          removeConnection({ todoListId, userId });
         }
       });
     });
@@ -108,10 +118,10 @@ function startDroppingConnections() {
 // this is not exposed to end user
 function removeConnection({
   todoListId,
-  ip,
+  userId,
 }: {
   todoListId: ToDoListConnections['todoListId'];
-  ip: Connection['ip'];
+  userId: Connection['userId'];
 }) {
-  console.log('removed', todoListId, ip);
+  console.log('removed', todoListId, userId);
 }

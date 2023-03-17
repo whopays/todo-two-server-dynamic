@@ -67,7 +67,11 @@ if (typeof port === 'string') {
   await server.start();
 
   app.use('/events/:todoListId', cors<cors.CorsRequest>(), changeEventsStream);
-  app.use('/viewStream/:todoListId', cors<cors.CorsRequest>(), viewStream);
+  app.use(
+    '/viewStream/:todoListId/:userId',
+    cors<cors.CorsRequest>(),
+    viewStream
+  );
   app.use(
     '/postEvent',
     cors<cors.CorsRequest>({
