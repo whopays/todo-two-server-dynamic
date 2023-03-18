@@ -8,7 +8,7 @@ function moveArrayItem(
   todoId: Todo['id'],
   toIndex: number
 ): Array<any> {
-  const newArray = [...array];
+  const newArray = [...array].filter((i) => i); // I once got "Cannot destructure property 'id' of 'object null' as it is null.""
   const oldPosition = array.findIndex(({ id }) => id === todoId);
   const item = newArray[oldPosition];
   newArray.splice(oldPosition, 1);
