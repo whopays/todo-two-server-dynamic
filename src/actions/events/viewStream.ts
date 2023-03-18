@@ -118,7 +118,7 @@ function startDroppingConnections() {
     currentlyOpenedTodoLists.forEach((currentlyOpenedTodoList) => {
       currentlyOpenedTodoList.connections =
         currentlyOpenedTodoList.connections.filter(({ startTimestamp }) => {
-          return Date.now() - startTimestamp < minute;
+          return Date.now() - startTimestamp < minute * 4;
         });
       if (currentlyOpenedTodoList.connections.length === 0) {
         currentlyOpenedTodoLists = currentlyOpenedTodoLists.filter(
@@ -126,5 +126,5 @@ function startDroppingConnections() {
         );
       }
     });
-  }, minute / 10);
+  }, minute);
 }
