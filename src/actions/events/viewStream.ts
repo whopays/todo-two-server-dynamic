@@ -30,7 +30,7 @@ export default async (req: Request, res: Response) => {
   res.writeHead(200, headers);
 
   addConnection({ userId, todoListId, res });
-  todoListStream({ res, todoListId, userId });
+  todoListSubmitToAll({ todoListId, userId });
 };
 
 function addConnection({
@@ -63,7 +63,7 @@ function addConnection({
 }
 
 // this streams events, this is where user subscribes
-function todoListStream({
+function todoListSubmitToAll({
   res,
   todoListId,
   userId,
@@ -76,13 +76,16 @@ function todoListStream({
     (currentlyOpenedTodoList) =>
       currentlyOpenedTodoList.todoListId === todoListId
   );
-  const response = todoList?.connections
+  const response = todoList?.connections.map(({ todoId, userId }) => ({
+    todoId,
+    userId,
+  }));
+
+  todoList?.connections
     .filter((connection) => connection.userId !== userId)
-    .map(({ todoId, userId }) => ({
-      todoId,
-      userId,
-    }));
-  res.write(`data: ${JSON.stringify(response)}\n\n`);
+    .forEach((connection) => {
+      connection.res.write(`data: ${JSON.stringify(response)}\n\n`);
+    });
 }
 
 export function changeActiveTodoInConnection({
@@ -105,6 +108,10 @@ export function changeActiveTodoInConnection({
   if (connection) {
     connection.todoId = todoId;
   }
+
+  todoList?.connections.forEach((connection) => {
+    todoListSubmitToAll({ res: connection.res, todoListId, userId });
+  });
 }
 
 // this is not exposed to end used
