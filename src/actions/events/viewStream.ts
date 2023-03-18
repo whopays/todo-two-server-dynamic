@@ -64,11 +64,9 @@ function addConnection({
 
 // this streams events, this is where user subscribes
 function todoListSubmitToAll({
-  res,
   todoListId,
   userId,
 }: {
-  res: Response;
   todoListId: ToDoListConnections['todoListId'];
   userId: Connection['userId'];
 }) {
@@ -110,7 +108,7 @@ export function changeActiveTodoInConnection({
   }
 
   todoList?.connections.forEach((connection) => {
-    todoListSubmitToAll({ res: connection.res, todoListId, userId });
+    todoListSubmitToAll({ todoListId, userId });
   });
 }
 
@@ -120,7 +118,7 @@ function startDroppingConnections() {
     currentlyOpenedTodoLists.forEach((currentlyOpenedTodoList) => {
       currentlyOpenedTodoList.connections =
         currentlyOpenedTodoList.connections.filter(({ startTimestamp }) => {
-          return Date.now() - startTimestamp < minute * 10;
+          return Date.now() - startTimestamp < minute;
         });
       if (currentlyOpenedTodoList.connections.length === 0) {
         currentlyOpenedTodoLists = currentlyOpenedTodoLists.filter(
@@ -128,5 +126,5 @@ function startDroppingConnections() {
         );
       }
     });
-  }, minute);
+  }, minute / 10);
 }
