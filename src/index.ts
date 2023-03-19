@@ -88,6 +88,12 @@ if (typeof port === 'string') {
     bodyParser.json({ limit: '1mb' }),
     postEvent
   );
+  app.use('/health', (req, res) => {
+    res.status(200).send({
+      uptime: process.uptime(),
+      time: new Date(),
+    });
+  });
 
   app.use(
     '/',
