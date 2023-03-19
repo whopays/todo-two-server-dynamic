@@ -1,4 +1,8 @@
 import { getModelForClass } from '@typegoose/typegoose';
+import {
+  ChangeStreamUpdateDocument,
+  ChangeStreamDeleteDocument,
+} from 'mongodb';
 import { Request, Response } from 'express';
 import TodoList from '../../schemas/TodoList';
 
@@ -11,7 +15,8 @@ export default async (req: Request, res: Response) => {
   };
   res.writeHead(200, headers);
 
-  const TodoListModelCollection = getModelForClass(TodoList).collection;
+  const TodoListModel = getModelForClass(TodoList);
+  const TodoListModelCollection = TodoListModel.collection;
   const updatePipeline = [{ $match: { 'fullDocument.id': todoListId } }];
   const deletePipeline = [
     {
@@ -24,25 +29,21 @@ export default async (req: Request, res: Response) => {
 
   TodoListModelCollection.watch(updatePipeline, {
     fullDocument: 'updateLookup',
-  }).on('change', (data) => {
-    // @ts-ignore
+  }).on('change', (data: ChangeStreamUpdateDocument) => {
     res.write(`data: ${JSON.stringify(data.fullDocument)}\n\n`);
   });
 
   // is sended 3 times
-  getModelForClass(TodoList)
-    .watch(deletePipeline, {
-      fullDocumentBeforeChange: 'whenAvailable',
-    })
-    .on('change', (data) => {
-      res.write(
-        `data: ${JSON.stringify({
-          // @ts-ignore
-          ...data.fullDocumentBeforeChange,
-          deleted: true,
-        })}\n\n`
-      );
-    });
+  TodoListModel.watch(deletePipeline, {
+    fullDocumentBeforeChange: 'whenAvailable',
+  }).on('change', (data: ChangeStreamDeleteDocument) => {
+    res.write(
+      `data: ${JSON.stringify({
+        ...data.fullDocumentBeforeChange,
+        deleted: true,
+      })}\n\n`
+    );
+  });
 
   // close changeStream
   // resume token
