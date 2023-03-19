@@ -4,6 +4,7 @@ import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHt
 import { ApolloServerPluginLandingPageDisabled } from '@apollo/server/plugin/disabled';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { useServer } from 'graphql-ws/lib/use/ws';
+import rateLimit from 'express-rate-limit';
 
 import bodyParser from 'body-parser';
 import express from 'express';
@@ -21,6 +22,14 @@ import postEvent from './actions/events/postEvent';
 
 const app = express();
 const httpServer = createServer(app);
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000, // Limit each IP to 1000 requests per `window` (here, per 15 minutes)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+app.use(limiter);
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 const plugins = [
