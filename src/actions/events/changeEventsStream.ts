@@ -27,14 +27,14 @@ export default async (req: Request, res: Response) => {
     },
   ];
 
-  TodoListModelCollection.watch(updatePipeline, {
+  const updateCursor = TodoListModelCollection.watch(updatePipeline, {
     fullDocument: 'updateLookup',
   }).on('change', (data: ChangeStreamUpdateDocument) => {
     res.write(`data: ${JSON.stringify(data.fullDocument)}\n\n`);
   });
 
   // is sended 3 times
-  TodoListModel.watch(deletePipeline, {
+  const deleteCursor = TodoListModel.watch(deletePipeline, {
     fullDocumentBeforeChange: 'whenAvailable',
   }).on('change', (data: ChangeStreamDeleteDocument) => {
     res.write(
@@ -45,6 +45,11 @@ export default async (req: Request, res: Response) => {
     );
   });
 
-  // close changeStream
-  // resume token
+  if (res.socket) {
+    res.socket.on('close', () => {
+      deleteCursor.close();
+      updateCursor.close();
+      res.end();
+    });
+  }
 };

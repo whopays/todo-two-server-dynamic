@@ -31,6 +31,12 @@ export default async (req: Request, res: Response) => {
 
   addConnection({ userId, todoListId, res });
   todoListSubmitToAll({ todoListId, userId });
+  if (res.socket) {
+    res.socket.on('close', () => {
+      removeConnection({ todoListId, userId });
+      res.end();
+    });
+  }
 };
 
 function addConnection({
@@ -60,6 +66,25 @@ function addConnection({
     currentlyOpenedTodoLists[todoListIndex].connections ??= [];
     currentlyOpenedTodoLists[todoListIndex].connections.push(newConnection);
   }
+}
+
+function removeConnection({
+  todoListId,
+  userId,
+}: {
+  todoListId: ToDoListConnections['todoListId'];
+  userId: Connection['userId'];
+}) {
+  const todoList = currentlyOpenedTodoLists.find(
+    (currentlyOpenedTodoList) =>
+      currentlyOpenedTodoList.todoListId === todoListId
+  );
+
+  if (!todoList) return;
+
+  todoList.connections = todoList.connections.filter(
+    (connection) => connection.userId !== userId
+  );
 }
 
 // this streams events, this is where user subscribes
