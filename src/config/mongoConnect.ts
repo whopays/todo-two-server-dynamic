@@ -1,6 +1,4 @@
 import mongoose, { Connection } from 'mongoose';
-import * as dotenv from 'dotenv';
-dotenv.config();
 
 const defaultDatabase = process.env.MONGO_DATABASE;
 const protocol = process.env.MONGO_PROTOCOL;

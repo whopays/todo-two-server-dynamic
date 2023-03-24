@@ -13,7 +13,7 @@ export default async (name: Todo['name'], todoListId: TodoList['id']) => {
       name: name,
       id: uuidv4(),
     });
-    const updatedModel = await TodoListModel.findOneAndUpdate(
+    await TodoListModel.findOneAndUpdate(
       { id: todoListId },
       {
         $push: { todos: todo },

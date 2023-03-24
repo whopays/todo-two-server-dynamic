@@ -4,7 +4,7 @@ import TodoList from '../../schemas/TodoList';
 export default async (title: TodoList['title'], todoListId: TodoList['id']) => {
   try {
     const TodoListModel = getModelForClass(TodoList);
-    const updatedModel = await TodoListModel.findOneAndUpdate(
+    await TodoListModel.findOneAndUpdate(
       { id: todoListId },
       {
         $set: { title },

@@ -1,3 +1,6 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
@@ -24,8 +27,8 @@ const app = express();
 const httpServer = createServer(app);
 
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // Limit each IP to 1000 requests per `window` (here, per 15 minutes)
+  windowMs: 2 * 60 * 1000, // 2 minutes
+  max: 250, // Limit each IP to 250 requests per `window` (here, per 2 minutes)
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
@@ -51,22 +54,13 @@ if (process.env.NODE_ENV === 'production') {
 
 const server = new ApolloServer({
   schema,
-  // typeDefs,
-  // resolvers,
   plugins,
 });
 
-// Creating the WebSocket server
 const wsServer = new WebSocketServer({
-  // This is the `httpServer` we created in a previous step.
   server: httpServer,
-  // Pass a different path here if app.use
-  // serves expressMiddleware at a different path
-  // path: '/graphql',
 });
 
-// Hand in the schema we just created and have the
-// WebSocketServer start listening.
 const serverCleanup = useServer({ schema }, wsServer);
 
 let port: string | undefined = process.env.PORT;
