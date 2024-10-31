@@ -15,7 +15,7 @@
     "watch": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run watch-node\""
   },
   "engines": {
-    "node": ">=22.11.0 <23.0.0"
+    "node": ">=22.0.0 <23.0.0"
   },
   "repository": {
     "type": "git",
@@ -31,7 +31,7 @@
   "dependencies": {
     "@apollo/server": "^4.1.1",
     "@graphql-tools/schema": "^9.0.13",
-    "@typegoose/typegoose": "^10.0.0",
+    "@typegoose/typegoose": "^12.8.0",
     "body-parser": "^1.20.1",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",

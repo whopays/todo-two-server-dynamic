@@ -17,9 +17,9 @@ async function connect() {
 
 async function connectionIsUp(connection: Connection): Promise<boolean> {
   try {
-    const adminUtil = connection.db.admin();
+    const adminUtil = connection.db?.admin();
 
-    const result = await adminUtil.ping();
+    const result = await adminUtil?.ping();
 
     return result?.ok === 1;
   } catch (err) {
